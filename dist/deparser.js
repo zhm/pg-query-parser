@@ -36,7 +36,7 @@ const parens = string => {
 };
 
 const indent = function indent(text) {
-  let count = arguments.length <= 1 || arguments[1] === undefined ? 1 : arguments[1];
+  let count = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
   return text;
 };
 
@@ -58,7 +58,7 @@ class Deparser {
   }
 
   list(nodes) {
-    let separator = arguments.length <= 1 || arguments[1] === undefined ? ', ' : arguments[1];
+    let separator = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : ', ';
 
     if (!nodes) {
       return '';
@@ -132,12 +132,11 @@ class Deparser {
   }
 
   type(names, args) {
-    var _names$map = names.map(name => this.deparse(name));
+    var _names$map = names.map(name => this.deparse(name)),
+        _names$map2 = _slicedToArray(_names$map, 2);
 
-    var _names$map2 = _slicedToArray(_names$map, 2);
-
-    const catalog = _names$map2[0];
-    const type = _names$map2[1];
+    const catalog = _names$map2[0],
+          type = _names$map2[1];
 
 
     const mods = (name, size) => {
