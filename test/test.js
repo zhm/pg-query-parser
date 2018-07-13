@@ -40,9 +40,19 @@ const defineQueryTest = (sqlQuery, file) => {
     try {
       parsed = parse(sqlQuery);
 
-      // Only SelectStmt's for now
-      if (parsed.query && parsed.query[0] && (parsed.query[0].SelectStmt != null)) {
-        check(sqlQuery);
+      const validTypes = [
+        'SelectStmt',
+        'VariableSetStmt',
+        'VariableShowStmt'
+      ];
+
+      if (parsed.query.length) {
+        const key = Object.keys(parsed.query[0])[0];
+
+        // Only SelectStmt's for now
+        if (parsed.query && parsed.query[0] && validTypes.indexOf(key) !== -1) {
+          check(sqlQuery);
+        }
       }
     } catch (ex) {
       let unsupported = false;
@@ -81,7 +91,9 @@ const defineFileTest = (file) => {
     const content = fs.readFileSync(file).toString().trim();
 
     for (const sql of content.split(';')) {
-      defineQueryTest(sql, file);
+      if (sql.trim().length > 0) {
+        defineQueryTest(sql, file);
+      }
     }
   };
 };

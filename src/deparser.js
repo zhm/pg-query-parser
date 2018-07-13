@@ -36,8 +36,8 @@ export default class Deparser {
     return (this.tree.map(node => this.deparse(node))).join('\n\n');
   }
 
-  deparseNodes(nodes) {
-    return nodes.map(node => this.deparse(node));
+  deparseNodes(nodes, context) {
+    return nodes.map(node => this.deparse(node, context));
   }
 
   list(nodes, separator = ', ') {
@@ -281,10 +281,10 @@ export default class Deparser {
 
   ['A_Const'](node, context) {
     if (node.val.String) {
-      return this.escape(this.deparse(node.val));
+      return this.escape(this.deparse(node.val, context));
     }
 
-    return this.deparse(node.val);
+    return this.deparse(node.val, context);
   }
 
   ['A_Indices'](node) {
@@ -445,6 +445,20 @@ export default class Deparser {
     return output.join(' ');
   }
 
+  ['DefElem'](node) {
+    if (node.defname === 'transaction_isolation') {
+      return format('ISOLATION LEVEL %s', node.arg.A_Const.val.String.str.toUpperCase());
+    }
+
+    if (node.defname === 'transaction_read_only') {
+      return node.arg.A_Const.val.Integer.ival === 0 ? 'READ WRITE' : 'READ ONLY';
+    }
+
+    if (node.defname === 'transaction_deferrable') {
+      return node.arg.A_Const.val.Integer.ival === 0 ? 'NOT DEFERRABLE' : 'DEFERRABLE';
+    }
+  }
+
   ['Float'](node) {
     // wrap negative numbers in parens, SELECT (-2147483648)::int4 * (-1)::int4
     if (node.str[0] === '-') {
@@ -548,8 +562,8 @@ export default class Deparser {
     }
   }
 
-  ['Integer'](node) {
-    if (node.ival < 0) {
+  ['Integer'](node, context) {
+    if (node.ival < 0 && context !== 'simple') {
       return `(${node.ival})`;
     }
 
@@ -1063,6 +1077,36 @@ export default class Deparser {
     output.push(this.deparse(node.result));
 
     return output.join(' ');
+  }
+
+  ['VariableSetStmt'](node) {
+    if (node.kind === 4) {
+      return format('RESET %s', node.name);
+    }
+
+    if (node.kind === 3) {
+      const name = {
+        'TRANSACTION': 'TRANSACTION',
+        'SESSION CHARACTERISTICS': 'SESSION CHARACTERISTICS AS TRANSACTION'
+      }[node.name];
+
+      return format('SET %s %s',
+                    name,
+                    this.deparseNodes(node.args, 'simple').join(', '));
+    }
+
+    if (node.kind === 1) {
+      return format('SET %s TO DEFAULT', node.name);
+    }
+
+    return format('SET %s%s = %s',
+                  node.is_local ? 'LOCAL ' : '',
+                  node.name,
+                  this.deparseNodes(node.args, 'simple').join(', '));
+  }
+
+  ['VariableShowStmt'](node) {
+    return format('SHOW %s', node.name);
   }
 
   ['WindowDef'](node, context) {
