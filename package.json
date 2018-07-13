@@ -7,7 +7,7 @@
   "scripts": {
     "test": "./node_modules/.bin/mocha --reporter dot test/setup.js test/test.js",
     "simpletest": "node_modules/.bin/mocha ./test/setup.js ./test/test.js ./test/elements/*.js",
-    "prepublish": "npm run lint && npm run clean && npm run build",
+    "prepublish": "npm run clean && npm run build",
     "lint": "node_modules/.bin/eslint src/* src/**/*",
     "build": "node_modules/.bin/babel src --out-dir dist --source-maps",
     "watch": "node_modules/.bin/babel src --out-dir dist --source-maps --watch",
