@@ -33,7 +33,7 @@ export default class Deparser {
   }
 
   deparseQuery() {
-    return (this.tree.map(node => this.deparse(node))).join('\n\n');
+    return (this.tree.map(node => this.deparse(node))).join(';\n\n');
   }
 
   deparseNodes(nodes, context) {
