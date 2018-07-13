@@ -36,7 +36,7 @@ const parens = string => {
 };
 
 const indent = function indent(text) {
-  let count = arguments.length <= 1 || arguments[1] === undefined ? 1 : arguments[1];
+  let count = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
   return text;
 };
 
@@ -53,12 +53,12 @@ class Deparser {
     return this.tree.map(node => this.deparse(node)).join('\n\n');
   }
 
-  deparseNodes(nodes) {
-    return nodes.map(node => this.deparse(node));
+  deparseNodes(nodes, context) {
+    return nodes.map(node => this.deparse(node, context));
   }
 
   list(nodes) {
-    let separator = arguments.length <= 1 || arguments[1] === undefined ? ', ' : arguments[1];
+    let separator = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : ', ';
 
     if (!nodes) {
       return '';
@@ -132,12 +132,11 @@ class Deparser {
   }
 
   type(names, args) {
-    var _names$map = names.map(name => this.deparse(name));
+    var _names$map = names.map(name => this.deparse(name)),
+        _names$map2 = _slicedToArray(_names$map, 2);
 
-    var _names$map2 = _slicedToArray(_names$map, 2);
-
-    const catalog = _names$map2[0];
-    const type = _names$map2[1];
+    const catalog = _names$map2[0],
+          type = _names$map2[1];
 
 
     const mods = (name, size) => {
@@ -194,7 +193,7 @@ class Deparser {
         if (node.name.length > 1) {
           const schema = this.deparse(node.name[0]);
           const operator = this.deparse(node.name[1]);
-          output.push(`OPERATOR(${ schema }.${ operator })`);
+          output.push(`OPERATOR(${schema}.${operator})`);
         } else {
           output.push(this.deparse(node.name[0]));
         }
@@ -213,13 +212,13 @@ class Deparser {
         // AEXPR_OP_ANY
         output.push(this.deparse(node.lexpr));
         output.push((0, _util.format)('ANY (%s)', this.deparse(node.rexpr)));
-        return output.join(` ${ this.deparse(node.name[0]) } `);
+        return output.join(` ${this.deparse(node.name[0])} `);
 
       case 2:
         // AEXPR_OP_ALL
         output.push(this.deparse(node.lexpr));
         output.push((0, _util.format)('ALL (%s)', this.deparse(node.rexpr)));
-        return output.join(` ${ this.deparse(node.name[0]) } `);
+        return output.join(` ${this.deparse(node.name[0])} `);
 
       case 3:
         // AEXPR_DISTINCT
@@ -318,10 +317,10 @@ class Deparser {
 
   ['A_Const'](node, context) {
     if (node.val.String) {
-      return this.escape(this.deparse(node.val));
+      return this.escape(this.deparse(node.val, context));
     }
 
-    return this.deparse(node.val);
+    return this.deparse(node.val, context);
   }
 
   ['A_Indices'](node) {
@@ -333,7 +332,7 @@ class Deparser {
   }
 
   ['A_Indirection'](node) {
-    const output = [`(${ this.deparse(node.arg) })`];
+    const output = [`(${this.deparse(node.arg)})`];
 
     // TODO(zhm) figure out the actual rules for when a '.' is needed
     //
@@ -348,7 +347,7 @@ class Deparser {
       if (subnode.String || subnode.A_Star) {
         const value = subnode.A_Star ? '*' : this.quote(subnode.String.str);
 
-        output.push(`.${ value }`);
+        output.push(`.${value}`);
       } else {
         output.push(this.deparse(subnode));
       }
@@ -363,7 +362,7 @@ class Deparser {
 
   ['BitString'](node) {
     const prefix = node.str[0];
-    return `${ prefix }'${ node.str.substring(1) }'`;
+    return `${prefix}'${node.str.substring(1)}'`;
   }
 
   ['BoolExpr'](node) {
@@ -475,10 +474,24 @@ class Deparser {
     return output.join(' ');
   }
 
+  ['DefElem'](node) {
+    if (node.defname === 'transaction_isolation') {
+      return (0, _util.format)('ISOLATION LEVEL %s', node.arg.A_Const.val.String.str.toUpperCase());
+    }
+
+    if (node.defname === 'transaction_read_only') {
+      return node.arg.A_Const.val.Integer.ival === 0 ? 'READ WRITE' : 'READ ONLY';
+    }
+
+    if (node.defname === 'transaction_deferrable') {
+      return node.arg.A_Const.val.Integer.ival === 0 ? 'NOT DEFERRABLE' : 'DEFERRABLE';
+    }
+  }
+
   ['Float'](node) {
     // wrap negative numbers in parens, SELECT (-2147483648)::int4 * (-1)::int4
     if (node.str[0] === '-') {
-      return `(${ node.str })`;
+      return `(${node.str})`;
     }
 
     return node.str;
@@ -583,9 +596,9 @@ class Deparser {
     }
   }
 
-  ['Integer'](node) {
-    if (node.ival < 0) {
-      return `(${ node.ival })`;
+  ['Integer'](node, context) {
+    if (node.ival < 0 && context !== 'simple') {
+      return `(${node.ival})`;
     }
 
     return node.ival.toString();
@@ -642,20 +655,20 @@ class Deparser {
       // wrap nested join expressions in parens to make the following symmetric:
       // select * from int8_tbl x cross join (int4_tbl x cross join lateral (select x.f1) ss)
       if (node.rarg.JoinExpr != null && !(node.rarg.JoinExpr.alias != null)) {
-        output.push(`(${ this.deparse(node.rarg) })`);
+        output.push(`(${this.deparse(node.rarg)})`);
       } else {
         output.push(this.deparse(node.rarg));
       }
     }
 
     if (node.quals) {
-      output.push(`ON ${ this.deparse(node.quals) }`);
+      output.push(`ON ${this.deparse(node.quals)}`);
     }
 
     if (node.usingClause) {
       const using = this.quote(this.deparseNodes(node.usingClause)).join(', ');
 
-      output.push(`USING (${ using })`);
+      output.push(`USING (${using})`);
     }
 
     const wrapped = node.rarg.JoinExpr != null || node.alias ? '(' + output.join(' ') + ')' : output.join(' ');
@@ -753,7 +766,7 @@ class Deparser {
     const calls = funcs.join(', ');
 
     if (node.is_rowsfrom) {
-      output.push(`ROWS FROM (${ calls })`);
+      output.push(`ROWS FROM (${calls})`);
     } else {
       output.push(calls);
     }
@@ -770,9 +783,9 @@ class Deparser {
       const defList = this.list(node.coldeflist);
 
       if (!node.alias) {
-        output.push(` AS (${ defList })`);
+        output.push(` AS (${defList})`);
       } else {
-        output.push(`(${ defList })`);
+        output.push(`(${defList})`);
       }
     }
 
@@ -894,7 +907,7 @@ class Deparser {
 
         const clause = node.distinctClause.map(e => this.deparse(e, 'select')).join(',\n');
 
-        output.push(`(${ clause })`);
+        output.push(`(${clause})`);
       } else {
         output.push('DISTINCT');
       }
@@ -923,7 +936,7 @@ class Deparser {
       output.push('VALUES');
 
       const lists = node.valuesLists.map(list => {
-        return `(${ list.map(v => this.deparse(v)).join(', ') })`;
+        return `(${list.map(v => this.deparse(v)).join(', ')})`;
       });
 
       output.push(lists.join(', '));
@@ -998,7 +1011,7 @@ class Deparser {
     }
 
     if (node.sortby_dir === 3) {
-      output.push(`USING ${ this.deparseNodes(node.useOp) }`);
+      output.push(`USING ${this.deparseNodes(node.useOp)}`);
     }
 
     if (node.sortby_nulls === 1) {
@@ -1086,6 +1099,31 @@ class Deparser {
     output.push(this.deparse(node.result));
 
     return output.join(' ');
+  }
+
+  ['VariableSetStmt'](node) {
+    if (node.kind === 4) {
+      return (0, _util.format)('RESET %s', node.name);
+    }
+
+    if (node.kind === 3) {
+      const name = {
+        'TRANSACTION': 'TRANSACTION',
+        'SESSION CHARACTERISTICS': 'SESSION CHARACTERISTICS AS TRANSACTION'
+      }[node.name];
+
+      return (0, _util.format)('SET %s %s', name, this.deparseNodes(node.args, 'simple').join(', '));
+    }
+
+    if (node.kind === 1) {
+      return (0, _util.format)('SET %s TO DEFAULT', node.name);
+    }
+
+    return (0, _util.format)('SET %s%s = %s', node.is_local ? 'LOCAL ' : '', node.name, this.deparseNodes(node.args, 'simple').join(', '));
+  }
+
+  ['VariableShowStmt'](node) {
+    return (0, _util.format)('SHOW %s', node.name);
   }
 
   ['WindowDef'](node, context) {
@@ -1257,7 +1295,7 @@ class Deparser {
 
       // SELECT interval(0) '1 day 01:23:45.6789'
       if (node.typmods[0] && node.typmods[0].A_Const && node.typmods[0].A_Const.val.Integer.ival === 32767 && node.typmods[1] && node.typmods[1].A_Const != null) {
-        intervals = [`(${ node.typmods[1].A_Const.val.Integer.ival })`];
+        intervals = [`(${node.typmods[1].A_Const.val.Integer.ival})`];
       } else {
         intervals = intervals.map(part => {
           if (part === 'second' && typmods.length === 2) {
