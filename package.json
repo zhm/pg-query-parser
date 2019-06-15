@@ -1,6 +1,6 @@
 {
   "name": "pg-query-parser",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "The real PostgreSQL query parser",
   "homepage": "http://github.com/zhm/pg-query-parser",
   "main": "dist/index.js",
@@ -48,7 +48,7 @@
   },
   "dependencies": {
     "lodash": "^4.13.1",
-    "pg-query-native": "^1.1.0"
+    "pg-query-native": "^1.2.0"
   },
   "keywords": [
     "sql",
