@@ -396,7 +396,7 @@ export default class Deparser {
     output.push('COLLATE');
 
     if (node.collname) {
-      output.push(this.quote(this.deparseNodes(node.collname)));
+      output.push(this.quote(this.deparseNodes(node.collname)).join(', '));
     }
 
     return output.join(' ');
@@ -437,7 +437,7 @@ export default class Deparser {
     output.push(node.ctename);
 
     if (node.aliascolnames) {
-      output.push(format('(%s)', this.quote(this.deparseNodes(node.aliascolnames))));
+      output.push(format('(%s)', this.quote(this.deparseNodes(node.aliascolnames)).join(', ')));
     }
 
     output.push(format('AS (%s)', this.deparse(node.ctequery)));
