@@ -4,7 +4,7 @@ import glob from 'glob';
 
 chai.should();
 
-import { deparse, parse, clean, byType } from '../src';
+import { deparse, parse, clean, byType } from '../src/index.js';
 
 const pattern = process.env.FILTER ? `*${process.env.FILTER}*.sql` : '*.sql';
 

@@ -1,6 +1,6 @@
 import { parse } from 'pg-query-native';
-import Deparser from './deparser';
-import { walk, all, first, tables, byType, clean } from './utils';
+import Deparser from './deparser.js';
+import { walk, all, first, tables, byType, clean } from './utils.js';
 
 const deparse = Deparser.deparse;
 
