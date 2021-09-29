@@ -1,7 +1,5 @@
-import _ from 'lodash';
-import { format } from 'util';
-
-const { keys } = _;
+const _ = require('lodash');
+const { format } = require('util');
 
 const compact = o => {
   return _.filter(_.compact(o), (p) => {
@@ -23,7 +21,7 @@ const parens = (string) => {
 
 const indent = (text, count = 1) => text;
 
-export default class Deparser {
+class Deparser {
   static deparse(query) {
     return new Deparser(query).deparseQuery();
   }
@@ -146,7 +144,7 @@ export default class Deparser {
       return item;
     }
 
-    const type = keys(item)[0];
+    const type = _.keys(item)[0];
     const node = _.values(item)[0];
 
     if (this[type] == null) {
@@ -1359,3 +1357,5 @@ export default class Deparser {
     return this.INTERVALS[mask.toString()];
   }
 }
+
+module.exports = Deparser;

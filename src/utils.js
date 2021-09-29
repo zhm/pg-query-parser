@@ -1,8 +1,8 @@
-import _ from 'lodash';
+const _ = require('lodash');
 
 const EXIT = {};
 
-export function walk(obj, func) {
+function walk(obj, func) {
   if (_.isArray(obj)) {
     for (const item of obj) {
       if (func(obj, item) === EXIT) {
@@ -44,7 +44,7 @@ export function walk(obj, func) {
   return null;
 }
 
-export function first(obj, func) {
+function first(obj, func) {
   return walk(obj, (object, key, value) => {
     if (func(object, key, value)) {
       return EXIT;
@@ -54,7 +54,7 @@ export function first(obj, func) {
   });
 }
 
-export function all(obj, func) {
+function all(obj, func) {
   const results = [];
 
   walk(obj, (object, key, value) => {
@@ -68,19 +68,19 @@ export function all(obj, func) {
   return results;
 }
 
-export function tables(query) {
+function tables(query) {
   return all(query, (obj, key, value) => {
     return key === 'RangeVar';
   });
 }
 
-export function byType(query, type) {
+function byType(query, type) {
   return all(query, (object, key, value) => {
     return key === type;
   });
 }
 
-export function clean(tree) {
+function clean(tree) {
   walk(tree, (object, key, value) => {
     if (_.isArray(object)) {
       return;
@@ -93,3 +93,12 @@ export function clean(tree) {
 
   return tree;
 }
+
+module.exports = {
+  walk,
+  first,
+  all,
+  tables,
+  byType,
+  clean
+};

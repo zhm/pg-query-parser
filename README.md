@@ -1,4 +1,4 @@
-# pg-query-parser [![Build Status](https://travis-ci.org/zhm/pg-query-parser.svg?branch=master)](https://travis-ci.org/zhm/pg-query-parser)
+# pg-query-parser
 
 The real PostgreSQL parser for nodejs. The primary objective of this module is to provide symmetric parsing
 and deparsing of SQL statements. With this module you can modify parts of a SQL query statement and

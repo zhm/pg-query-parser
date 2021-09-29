@@ -1,10 +1,10 @@
-import chai from 'chai';
-import fs from 'fs';
-import glob from 'glob';
+const chai = require('chai');
+const fs = require('fs');
+const glob = require('glob');
 
 chai.should();
 
-import { deparse, parse, clean, byType } from '../src';
+const { deparse, parse, clean, byType } = require('../src');
 
 const pattern = process.env.FILTER ? `*${process.env.FILTER}*.sql` : '*.sql';
 
