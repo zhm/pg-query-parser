@@ -6,7 +6,7 @@
   "main": "src/index.js",
   "scripts": {
     "test": "mocha test/test.js",
-    "lint": "eslint src/* src/**/*",
+    "lint": "eslint src",
     "check-deps": "ncu",
     "update-deps": "ncu -u"
   },
