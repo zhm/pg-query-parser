@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "lodash": "^4.17.21",
-    "pg-query-native": "github:jahndis/node-pg-query-native#update-dependencies"
+    "pg-query-native": "^1.3.1"
   },
   "keywords": [
     "sql",
