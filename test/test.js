@@ -4,7 +4,7 @@ const glob = require('glob');
 
 chai.should();
 
-const { deparse, parse, clean, byType } = require('../src/index');
+const { deparse, parse, clean, byType } = require('../src');
 
 const pattern = process.env.FILTER ? `*${process.env.FILTER}*.sql` : '*.sql';
 
