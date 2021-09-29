@@ -4,12 +4,11 @@
   "description": "The real PostgreSQL query parser",
   "homepage": "http://github.com/zhm/pg-query-parser",
   "main": "src/index.js",
-  "type": "module",
   "scripts": {
     "test": "mocha test/test.js",
     "lint": "eslint src/* src/**/*",
-    "check-deps": "node_modules/.bin/ncu",
-    "update-deps": "node_modules/.bin/ncu -u"
+    "check-deps": "ncu",
+    "update-deps": "ncu -u"
   },
   "author": "Zac McCormick <zac.mccormick@gmail.com> (http://github.com/zhm)",
   "license": "BSD-3-Clause",

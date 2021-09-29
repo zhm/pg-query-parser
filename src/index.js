@@ -1,6 +1,6 @@
-import { parse } from 'pg-query-native';
-import Deparser from './deparser.js';
-import { walk, all, first, tables, byType, clean } from './utils.js';
+const { parse } = require('pg-query-native');
+const Deparser = require('./deparser');
+const { walk, all, first, tables, byType, clean } = require('./utils');
 
 const deparse = Deparser.deparse;
 
@@ -13,4 +13,4 @@ const verify = (query) => {
   return JSON.stringify(json1) === JSON.stringify(json2);
 };
 
-export { parse, deparse, walk, first, all, tables, byType, clean, verify, Deparser };
+module.exports = { parse, deparse, walk, first, all, tables, byType, clean, verify, Deparser };
